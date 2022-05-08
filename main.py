@@ -11,7 +11,7 @@ from antennaclass import SatelliteAntenna
 bot = telebot.TeleBot(BOT_TOKEN)
 
 
-@bot.message_handler(commands=['start', 'location', 'eng', 'ru', 'rst', 'reset', 'about'])
+@bot.message_handler(commands=['start', 'location', 'eng', 'ru', 'rst', 'reset', 'about', 'help'])
 def start(message):
     global language
     global process_step
@@ -37,6 +37,8 @@ def start(message):
         process_step = 1
     elif smg == '/about':
         bot.send_message(message.chat.id, phrases['disclaimer'][language], parse_mode='HTML')
+    elif smg == '/help':
+        bot.send_message(message.chat.id, phrases['help'][language], parse_mode='HTML')
     else:
         bot.send_message(message.chat.id, phrases['unknown_command'][language], parse_mode='HTML')
 
@@ -44,6 +46,7 @@ def start(message):
 @bot.message_handler()
 def get_user_text(message):
     global antenna
+    global process_step
     if message.text == 'photo':
         photo = open("./resources/satellite.png", 'rb')
         bot.send_photo(message.chat.id, photo)
@@ -53,25 +56,52 @@ def get_user_text(message):
         # collecting data from user through dialog
         if process_step == 1:
             # satellite longitude
-            msg = message.text.lower().replace(" ", "").replace("w", "")
-            if 'e' in msg:
-                # Convert East to -
-                msg = '-' + msg.replace("e", "")
-            try:
-                sat_longitude = int(float(msg).__round__(0))
-                #print(sat_longitude)
-            except Exception:
-                bot.send_message(message.chat.id, phrases['wrong_input'][language], parse_mode='HTML')
-                return None
-                print("1="+msg+"=")
-            #print(type(sat_longitude))
-            if -180 <= sat_longitude <= 180:
-                antenna.set_sat_longitude(sat_longitude)
-                bot.send_message(message.chat.id, "Lonitude is " + sat_longitude.__str__(), parse_mode='HTML')
+            if antenna.set_sat_longitude(message.text):
+                # success. go to next step
+                process_step = 2
+                bot.send_message(message.chat.id, phrases['sat_long_achieved'][language], parse_mode='HTML')
+                bot.send_message(message.chat.id, phrases['antenna_location_request'][language], parse_mode='HTML')
             else:
+                # wrong data in message
                 bot.send_message(message.chat.id, phrases['wrong_input'][language], parse_mode='HTML')
-                print("2="+msg+"=")
-                return None
+        elif process_step == 2:
+            # antenna coordinates
+            if antenna.set_antenna_coordinates_str(message.text):
+                # success. go to next step
+                process_step = 3
+                bot.send_message(message.chat.id, phrases['antenna_location_achieved'][language], parse_mode='HTML')
+                bot.send_message(message.chat.id, phrases['antenna_offset_request'][language], parse_mode='HTML')
+            else:
+                # wrong data in message
+                bot.send_message(message.chat.id, phrases['wrong_input'][language], parse_mode='HTML')
+        elif process_step == 3:
+            # timezone
+            if antenna.set_antenna_offset_str(message.text):
+                # success. go to next step
+                process_step = 4
+                bot.send_message(message.chat.id, phrases['antenna_offset_ahcieved'][language], parse_mode='HTML')
+                bot.send_message(message.chat.id, phrases['calculations_1'][language], parse_mode='HTML')
+            else:
+                # wrong data in message
+                bot.send_message(message.chat.id, phrases['wrong_input'][language], parse_mode='HTML')
+            # final calculations
+            antenna.set_now()
+            # antenna.set_antenna_coordinates_str("63,3N;75.53E")
+            # antenna.set_sat_longitude("-66")
+            # ofangle = 17  #ofset angel of antenna
+            twilightr = -7
+            # antenna.set_antenna_offset(ofangle)
+            results = antenna.sunpos(twilightr)
+            if results[0] == "True":
+                bot.send_message(message.chat.id, phrases['result_success'][language], parse_mode='HTML')
+                for result in results:
+                    if result != "True":
+                        bot.send_message(message.chat.id, result, parse_mode='HTML')
+            else:
+                bot.send_message(message.chat.id, phrases['result_failed'][language], parse_mode='HTML')
+            # bot.send_message(message.chat.id, phrases['calculations_2'][language], parse_mode='HTML')
+            bot.send_message(message.chat.id, phrases['dialog_finish'][language], parse_mode='HTML')
+
         else:
             bot.send_message(message.chat.id, phrases['unknown_text'][language], parse_mode='HTML')
 

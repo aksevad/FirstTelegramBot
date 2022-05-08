@@ -1,12 +1,8 @@
-"""
-class for a math model of a RoboDog Epsilon2
-"""
-
 from math import floor, sin, asin, cos, pi, tan, atan2, fabs, atan, sqrt
 import datetime
 
 
-class SatelliteAntenna:
+class SatelliteAntenna():
     __year = 1975
     __month = 2
     __day = 2
@@ -19,32 +15,9 @@ class SatelliteAntenna:
     __antenna_offset = 17
 
     __sat_longitude = 0
-    __azimuth = 0
-    __vertical = 0
-
-    def __init__(self):
-        self.set_now()
-
-    def get_azimuth(self):
-        return self.__azimuth
-
-    def get_vertical(self):
-        return self.__vertical
 
     def set_antenna_offset(self, offset):
         __antenna_offset = offset
-
-    def set_antenna_offset_str(self, offset):
-        offset = offset.lower().replace(" ", "")
-        try:
-            antenna_offset = float(offset)
-        except Exception:
-            return False
-        if 0 <= antenna_offset <= 90:
-            self.__antenna_offset = antenna_offset
-        else:
-            return False
-        return True
 
     def set_sat_longitude(self, sat_longitude_str):
         sat_longitude_str = sat_longitude_str.lower().replace(" ", "").replace("w", "")
@@ -61,31 +34,26 @@ class SatelliteAntenna:
             return False
         return True
 
-    def set_now(self):
+    def setnow(self):
         today = datetime.datetime.utcnow()
-        this_year = today.year
-        if (this_year <= 1900):
-            this_year = this_year + 1900  # for Netscape on Mac
+        thisyear = today.year
+        if (thisyear <= 1900):
+            thisyear = thisyear + 1900  # for Netscape on Mac
 
-        self.__year = this_year
+        self.__year = thisyear
         self.__month = today.month
         self.__day = today.day
         self.__hour = today.hour
         self.__min = today.minute
         self.__zone = 0
 
-    def set_user_day(self, this_month, this_day, this_hour, this_minute, this_zone):
+    def setuserday(self, thismonth, thisday, thishour, thisminute, thiszone):
         self.__year = 1975
-        self.__month = this_month
-        self.__day = this_day
-        self.__hour = this_hour
-        self.__min = this_minute
-        self.__zone = this_zone
-
-    def set_timezone(self, antenna_coords_str):
-        # папдалово с конвертацией пояса
-        self.__timezone = -5
-        return True
+        self.__month = thismonth
+        self.__day = thisday
+        self.__hour = thishour
+        self.__min = thisminute
+        self.__zone = thiszone
 
     def ut(self, h, m, z):
         return h - z + m / 60
@@ -157,24 +125,16 @@ class SatelliteAntenna:
         antenna_coords_str = antenna_coords_str.lower().replace(" ", "").replace("e", "").replace("n", "") \
             .replace(",", ".")
         coords = antenna_coords_str.split(";", 1)
-        north_south = "n"
-        east_west = 'e'
+
         if 's' in coords[0]:
             # Convert South to -
-            north_south = "s"
-            #coords[0] = '-' + coords[0].replace("s", "")
+            coords[0] = '-' + coords[0].replace("s", "")
         if 'w' in coords[1]:
             # Convert west to -
-            east_west = 'w'
-            #coords[1] = '-' + coords[1].replace("w", "")
+            coords[1] = '-' + coords[1].replace("w", "")
         try:
             latitude = float(coords[0])
-            if north_south == 's':
-                latitude = -latitude
-            longitude = -float(coords[1])
-            if east_west == 'w':
-                longitude = -longitude
-
+            longitude = float(coords[1])
         except Exception:
             return False
 
@@ -183,7 +143,7 @@ class SatelliteAntenna:
             self.__antenna_longitude = longitude
         else:
             return False
-        print("la=" + latitude.__str__() + ";lo=" + longitude.__str__())
+        print("la="+latitude.__str__()+";lo="+longitude.__str__())
         return True
 
     def sunpos(self, twilightr):
@@ -308,59 +268,50 @@ class SatelliteAntenna:
                 m = m + 1
             h = h + 1
 
-        result = ['True']
         cikti = ""
         if (self.__month <= 9):
             cikti = cikti + "Дата: " + self.__day.__str__() + ".0" + self.__month.__str__() + "." + self.__year.__str__() + ", " + ho.__str__() + " hr :" + mi.__str__() + " min, " + zo.__str__() + "hr GMT \r"
         else:
             cikti = cikti + "Дата: " + self.__day + "." + self.__month + "." + self.__year + ", " + ho + " hr :" + mi + " min, " + zo + "hr GMT \r"
-        result.append(cikti)
-        cikti = "Место: " + str(round(lao, 3)) + "° " + ("N" if self.__antenna_latitude > 0 else "S") + ",  " + \
+        print(cikti)
+        cikti = cikti + "Место: " + str(round(lao, 3)) + "° " + ("N" if self.__antenna_latitude > 0 else "S") + ",  " + \
                 str(round(lgo, 3)) + "° " + ("W" if self.__antenna_longitude < 0 else "E") + "\r"
-        result.append(cikti)
-        cikti = "Азимут спутника:\t" + str(round(scaz, 3)) + "°" + "\r";
-        result.append(cikti)
-        cikti = "Угол места истиный:\t" + str(round(rverang, 3)) + "°" + "\r"
-        rverang = rverang - fabs(self.__antenna_offset)
-        result.append(cikti)
-        cikti = "Угол места актуальный:\t" + str(round(rverang, 3)) + "°" + "\r"
-        result.append(cikti)
-        cikti = "Азимут солнца:\t" + str(round(azm, 1)) + "°"
-        result.append(cikti)
-        # result = cikti
+        print(cikti)
 
+        cikti = cikti + "Азимут спутника:\t" + str(round(scaz, 3)) + "°" + "\r";
+        print(cikti)
+        cikti = cikti + "Угол места истиный:\t" + str(round(rverang, 3)) + "°" + "\r"
+        rverang = rverang - fabs(self.__antenna_offset);
+        print(cikti)
+        cikti = cikti + "Угол места актуальный:\t" + str(round(rverang, 3)) + "°" + "\r"
+        print(cikti)
+        cikti = cikti + "Азимут солнца:\t" + str(round(azm, 1)) + "°"
+        print(cikti)
+        result = cikti
         print("Finish")
-        return result
-
-# def main():
-#     print("start")
-#     ant = SatelliteAntenna()
-#
-#     ant.setnow()
-#
-#     latitude = 63
-#     latmin = 18
-#     ns = "North"  # North or south
-#
-#     longitude = 75  # longitude grads
-#     longmin = 32  # longitude minutes
-#     ew = "East"  # East or West
-#     ant.set_antenna_coordinates_str("63,3N;75.53E")
-#     #ant.set_antenna_coordinates(latitude, longitude, ns, ew, latmin, longmin)
-#     spacecraft = 66  # satelitte longitude
-#     ant.set_sat_longitude("-66")
-#     ofangle = 17  # ofset angel of antenna
-#     twilightr = -7
-#     ant.set_antenna_offset(ofangle)
-#     ant.sunpos(twilightr)  # main algorithm in it
-#
-#
-# main()
 
 
-# def set_axes(self, pelvic_x, pelvic_y, shoulder_x, shoulder_y):
-#     self.__shoulder_axis_y = shoulder_y
-#     self.__shoulder_axis_x = shoulder_x
-#     self.__pelvic_axis_x = pelvic_x
-#     self.__pelvic_axis_y = pelvic_y
-# bot.send_message(message.chat.id, "Lonitude is " + sat_longitude.__str__(), parse_mode='HTML')
+def main():
+    print("start")
+    ant = SatelliteAntenna()
+
+    ant.setnow()
+
+    latitude = 63
+    latmin = 18
+    ns = "North"  # North or south
+
+    longitude = 75  # longitude grads
+    longmin = 32  # longitude minutes
+    ew = "East"  # East or West
+    ant.set_antenna_coordinates_str("63,3N;75.53E")
+    #ant.set_antenna_coordinates(latitude, longitude, ns, ew, latmin, longmin)
+    spacecraft = 66  # satelitte longitude
+    ant.set_sat_longitude("-66")
+    ofangle = 17  # ofset angel of antenna
+    twilightr = -7
+    ant.set_antenna_offset(ofangle)
+    ant.sunpos(twilightr)  # main algorithm in it
+
+
+main()

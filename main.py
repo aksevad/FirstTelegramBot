@@ -3,13 +3,15 @@ bot for antennas pointing
 """
 
 import telebot
+import logging
 
 from resources.phrases import phrases
 from config import BOT_TOKEN
 from antennaclass import SatelliteAntenna
 
 bot = telebot.TeleBot(BOT_TOKEN)
-
+logger = telebot.logger
+logger.setLevel(logging.DEBUG)
 
 @bot.message_handler(commands=['start', 'location', 'eng', 'ru', 'rst', 'reset', 'about', 'help'])
 def start(message):

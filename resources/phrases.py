@@ -8,6 +8,7 @@ phrases = {
     "bot_entrance": {"ENG": "Hello", "RU": "Привет"},
     "help": {"ENG": "help function does not exist yet", "RU": "раздел помощи еще не создан"},
     "change_language": {"ENG": "Switched to English", "RU": "Переключился на Русский"},
+    "language_select": {"ENG": "\\eng for English \n\\ru для Русского", "RU": "\\eng for English \n\\ru для Русского"},
     "unknown_command": {"ENG": "Unknown command", "RU": "Нет такой команды"},
     "unknown_text": {"ENG": "I can`t understand You", "RU": "Я тебя не понимаю"},
     "reset_requested": {"ENG": "Let`s start from the begin", "RU": "Начинаем заново"},

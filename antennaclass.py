@@ -22,8 +22,12 @@ class SatelliteAntenna:
     __azimuth = 0
     __vertical = 0
 
-    def __init__(self):
+    __process_step = 1
+    __language = "ENG"
+
+    def __init__(self, language="ENG"):
         self.set_now()
+        self.__language=language
 
     def get_azimuth(self):
         return self.__azimuth
@@ -45,6 +49,21 @@ class SatelliteAntenna:
         else:
             return False
         return True
+
+    def get_process_step(self):
+        return self.__process_step
+
+    def set_process_step(self, step):
+        self.__process_step = step
+
+    def get_language(self):
+        return self.__language
+
+    def set_language(self, language):
+        self.__language = language
+
+    def get_sat_longitude(self):
+        return self.__sat_longitude
 
     def set_sat_longitude(self, sat_longitude_str):
         sat_longitude_str = sat_longitude_str.lower().replace(" ", "").replace("w", "")
@@ -162,11 +181,11 @@ class SatelliteAntenna:
         if 's' in coords[0]:
             # Convert South to -
             north_south = "s"
-            #coords[0] = '-' + coords[0].replace("s", "")
+            # coords[0] = '-' + coords[0].replace("s", "")
         if 'w' in coords[1]:
             # Convert west to -
             east_west = 'w'
-            #coords[1] = '-' + coords[1].replace("w", "")
+            # coords[1] = '-' + coords[1].replace("w", "")
         try:
             latitude = float(coords[0])
             if north_south == 's':

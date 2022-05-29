@@ -19,24 +19,51 @@ class SatelliteAntenna:
     __antenna_offset = 17
 
     __sat_longitude = 0
-    __azimuth = 0
+    __sat_azimuth = 0
     __vertical = 0
+
+    __sun_azimuth = 0
+    __san_sat_m45_parity = datetime.time(0, 0, 0)
+    __san_sat_m30_parity = datetime.time(0, 0, 0)
+    __san_sat_parity = datetime.time(0, 0, 0)
+    __san_sat_p30_parity = datetime.time(0, 0, 0)
+    __san_sat_p45_parity = datetime.time(0, 0, 0)
+    __outcome = "NULL"
 
     __process_step = 1
     __language = "ENG"
 
     def __init__(self, language="ENG"):
         self.set_now()
-        self.__language=language
+        self.__language = language
 
-    def get_azimuth(self):
-        return self.__azimuth
+    def get_sun_sat_parity_time(self):
+        parity = {
+            "m45": self.__san_sat_m45_parity,
+            "m30": self.__san_sat_m30_parity,
+            "mp0": self.__san_sat_parity,
+            "p30": self.__san_sat_p30_parity,
+            "p45": self.__san_sat_p45_parity,
+        }
+        return parity
+
+    def get_outcome(self):
+        return self.__outcome
+
+    def get_satellite_azimuth(self):
+        return self.__sat_azimuth
+
+    def get_sun_azimuth(self):
+        return self.__sun_azimuth
 
     def get_vertical(self):
         return self.__vertical
 
+    def get_antenna_offset(self):
+        return self.__antenna_offset
+
     def set_antenna_offset(self, offset):
-        __antenna_offset = offset
+        self.__antenna_offset = offset
 
     def set_antenna_offset_str(self, offset):
         offset = offset.lower().replace(" ", "")
@@ -74,6 +101,9 @@ class SatelliteAntenna:
             sat_longitude = int(float(sat_longitude_str).__round__(0))
         except Exception:
             return False
+        if sat_longitude == 0:
+            # kostil - algoritm ne rabotaet s 0
+            sat_longitude = 1
         if -180 <= sat_longitude <= 180:
             self.__sat_longitude = sat_longitude
         else:
@@ -92,6 +122,14 @@ class SatelliteAntenna:
         self.__hour = today.hour
         self.__min = today.minute
         self.__zone = 0
+
+    def get_date_str(self):
+        date_str = self.__year.__str__() + '-' + self.__month.__str__() + '-' + self.__day.__str__()
+        return date_str
+
+    def get_time_str(self):
+        time_str = self.__hour.__str__() + ':' + self.__min.__str__() + ':00'
+        return time_str
 
     def set_user_day(self, this_month, this_day, this_hour, this_minute, this_zone):
         self.__year = 1975
@@ -170,6 +208,12 @@ class SatelliteAntenna:
         self.__antenna_longitude = (longitude + longitude_minutes / 60) * (1 if west_east == "East" else -1)
         return True
 
+    def get_antenna_longitude(self):
+        return self.__antenna_longitude
+
+    def get_antenna_latitude(self):
+        return self.__antenna_latitude
+
     def set_antenna_coordinates_str(self, antenna_coords_str):
         # попадалово с конвертацией координат from string
 
@@ -196,7 +240,10 @@ class SatelliteAntenna:
 
         except Exception:
             return False
-
+        if longitude == 0:
+            longitude = 0.1
+        if latitude == 0:
+            latitude = 0.1
         if -180 <= longitude <= 180 and -90 <= latitude <= 90:
             self.__antenna_latitude = latitude
             self.__antenna_longitude = longitude
@@ -210,6 +257,11 @@ class SatelliteAntenna:
         mi = 1.0 * self.__min
         zo = 1.0 * self.__zone
         twr = 1.0 * twilightr
+
+        hno = 0
+        mno = 0
+        ha1 = 0
+        ha2 = 0
 
         k = pi / 180.0
         lgo = self.__antenna_longitude
@@ -328,27 +380,32 @@ class SatelliteAntenna:
             h = h + 1
 
         result = ['True']
-        cikti = ""
-        if (self.__month <= 9):
-            cikti = cikti + "Дата: " + self.__day.__str__() + ".0" + self.__month.__str__() + "." + self.__year.__str__() + ", " + ho.__str__() + " hr :" + mi.__str__() + " min, " + zo.__str__() + "hr GMT \r"
-        else:
-            cikti = cikti + "Дата: " + self.__day + "." + self.__month + "." + self.__year + ", " + ho + " hr :" + mi + " min, " + zo + "hr GMT \r"
-        result.append(cikti)
-        cikti = "Место: " + str(round(lao, 3)) + "° " + ("N" if self.__antenna_latitude > 0 else "S") + ",  " + \
-                str(round(lgo, 3)) + "° " + ("W" if self.__antenna_longitude < 0 else "E") + "\r"
-        result.append(cikti)
-        cikti = "Азимут спутника:\t" + str(round(scaz, 3)) + "°" + "\r";
-        result.append(cikti)
-        cikti = "Угол места истиный:\t" + str(round(rverang, 3)) + "°" + "\r"
-        rverang = rverang - fabs(self.__antenna_offset)
-        result.append(cikti)
-        cikti = "Угол места актуальный:\t" + str(round(rverang, 3)) + "°" + "\r"
-        result.append(cikti)
-        cikti = "Азимут солнца:\t" + str(round(azm, 1)) + "°"
-        result.append(cikti)
+        # cikti = ""
+        # if (self.__month <= 9):
+        #     cikti = cikti + "Дата: " + self.__day.__str__() + ".0" + self.__month.__str__() + "." + self.__year.__str__() + ", " + ho.__str__() + " hr :" + mi.__str__() + " min, " + zo.__str__() + "hr GMT \r"
+        # else:
+        #     cikti = cikti + "Дата: " + self.__day.__str__() + "." + self.__month.__str__() + "." + self.__year.__str__() + ", " + ho.__str__() + " hr :" + mi.__str__() + " min, " + zo.__str__() + "hr GMT \r"
+        # result.append(cikti)
+        # cikti = "Место: " + str(round(lao, 3)) + "° " + ("N" if self.__antenna_latitude > 0 else "S") + ",  " + \
+        #         str(round(lgo, 3)) + "° " + ("W" if self.__antenna_longitude < 0 else "E") + "\r"
+        # result.append(cikti)
+        # cikti = "Азимут спутника:\t" + str(round(scaz, 3)) + "°" + "\r"
+        # result.append(cikti)
+        # cikti = "Угол места истиный:\t" + str(round(rverang, 3)) + "°" + "\r"
+        self.__vertical = rverang
+        self.__outcome = "SUCCESS" if rverang > 0 else "OUT OF HORIZONT"
+        # rverang = rverang - fabs(self.__antenna_offset)
+        # result.append(cikti)
+        # cikti = "Угол места актуальный:\t" + str(round(rverang, 3)) + "°" + "\r"
+        # result.append(cikti)
+        # cikti = "Азимут солнца:\t" + str(round(azm, 1)) + "°"
+        # result.append(cikti)
         # result = cikti
 
-        print("Finish")
+        self.__sat_azimuth = scaz
+        self.__sun_azimuth = azm
+
+        #print("Finish")
         return result
 
 # def main():

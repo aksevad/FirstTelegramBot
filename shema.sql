@@ -7,15 +7,21 @@
 -- create a table for calculations history
 create table calculations
     (id NUMERIC,
-    calculation_date date,
-    calculation_time time,
-    calculation_timezone numeric,
+    calculation_date_UTC date,
+    calculation_time_UTC time,
     antenna_latitude float,
     antenna_longitude float,
     antenna_offset float,
     satellite_longitude float,
-    calculated_azimuth float,
-    calculated_vertical float,
+    calculated_satellite_azimuth float,
+    calculated_sun_azimuth float,
+    calculated_true_vertical float,
+    calculated_sun_satellite_m45_parity time,
+    calculated_sun_satellite_m30_parity time,
+    calculated_sun_satellite_parity time,
+    calculated_sun_satellite_p30_parity time,
+    calculated_sun_satellite_p45_parity time,
+    result varchar(100),
     constraint calculations_PK PRIMARY KEY (id));
 
 

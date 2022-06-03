@@ -152,7 +152,7 @@ def get_user_text(message):
 def result_output(message, language):
     global cases
     chat_id = message.chat.id
-    success_result_dialog_d = {'result_success': None,
+    success_result_dialog_d = {'result_success': "",
                                'datetime': cases.get(chat_id).get_date_str(),
                                'sat_azimuth': cases.get(chat_id).get_satellite_azimuth(),
                                'sat_vertical_true': cases.get(chat_id).get_vertical(),
@@ -165,8 +165,6 @@ def result_output(message, language):
             # print(success_result_dialog_d[line])
             if isinstance(success_result_dialog_d[line], str):
                 temp_str = phrases[line][language] + success_result_dialog_d[line]
-            elif isinstance(success_result_dialog_d[line], None):
-                temp_str = phrases[line][language]
             else:
                 try:
                     temp_str = phrases[line][language] + success_result_dialog_d[line].__str__()
